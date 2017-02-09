@@ -11,32 +11,20 @@ from model import Model
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data_dir', type=str, default='data/scotus',
-                       help='data directory containing input.txt')
+    parser.add_argument('--data_dir', type=str, default='data/scotus', help='data directory containing input.txt')
     parser.add_argument('--save_dir', type=str, default='models/new_save',
-                       help='directory for checkpointed models (load from here if one is already present)')
-    parser.add_argument('--rnn_size', type=int, default=1500,
-                       help='size of RNN hidden state')
-    parser.add_argument('--num_layers', type=int, default=4,
-                       help='number of layers in the RNN')
-    parser.add_argument('--model', type=str, default='lstm',
-                       help='rnn, gru, or lstm')
-    parser.add_argument('--batch_size', type=int, default=40,
-                       help='minibatch size')
-    parser.add_argument('--seq_length', type=int, default=50,
-                       help='RNN sequence length')
-    parser.add_argument('--num_epochs', type=int, default=50,
-                       help='number of epochs')
-    parser.add_argument('--save_every', type=int, default=1000,
-                       help='save frequency')
-    parser.add_argument('--grad_clip', type=float, default=5.,
-                       help='clip gradients at this value')
-    parser.add_argument('--learning_rate', type=float, default=6e-5,
-                       help='learning rate')
-    parser.add_argument('--decay_rate', type=float, default=0.95,
-                       help='how much to decay the learning rate')
-    parser.add_argument('--decay_steps', type=int, default=100000,
-                       help='how often to decay the learning rate')
+                        help='directory for checkpointed models (load from here if one is already present)')
+    parser.add_argument('--rnn_size', type=int, default=1500, help='size of RNN hidden state')
+    parser.add_argument('--num_layers', type=int, default=4, help='number of layers in the RNN')
+    parser.add_argument('--model', type=str, default='lstm', help='rnn, gru, or lstm')
+    parser.add_argument('--batch_size', type=int, default=40, help='minibatch size')
+    parser.add_argument('--seq_length', type=int, default=50, help='RNN sequence length')
+    parser.add_argument('--num_epochs', type=int, default=50, help='number of epochs')
+    parser.add_argument('--save_every', type=int, default=1000, help='save frequency')
+    parser.add_argument('--grad_clip', type=float, default=5., help='clip gradients at this value')
+    parser.add_argument('--learning_rate', type=float, default=6e-5, help='learning rate')
+    parser.add_argument('--decay_rate', type=float, default=0.95, help='how much to decay the learning rate')
+    parser.add_argument('--decay_steps', type=int, default=100000, help='how often to decay the learning rate')
     args = parser.parse_args()
     train(args)
 
@@ -140,8 +128,8 @@ def train(args):
                     elapsed = time.time() - start
                     global_seconds_elapsed += elapsed
                     writer.add_summary(summary, e * batch_range[1] + b + 1)
-                    print("{}/{} (epoch {}/{}), loss = {:.3f}, time/batch = {:.3f}s" \
-                        .format(b, batch_range[1], e, epoch_range[1], train_loss, elapsed))
+                    print("{}/{} (epoch {}/{}), loss = {:.3f}, time/batch = {:.3f}s".format(
+                        b, batch_range[1], e, epoch_range[1], train_loss, elapsed))
                     # Every save_every batches, save the model to disk.
                     # By default, only the five most recent checkpoint files are kept.
                     if (e * batch_range[1] + b + 1) % args.save_every == 0 \
@@ -155,8 +143,9 @@ def train(args):
         finally:
             writer.flush()
             global_step = e * data_loader.total_batch_count + b
-            save_model(sess, saver, model, args.save_dir, global_step,
-                    data_loader.total_batch_count, global_seconds_elapsed)
+            save_model(sess, saver, model, args.save_dir, global_step, data_loader.total_batch_count,
+                       global_seconds_elapsed)
+
 
 def save_model(sess, saver, model, save_dir, global_step, steps_per_epoch, global_seconds_elapsed):
     global_epoch_fraction = float(global_step) / float(steps_per_epoch)
@@ -166,6 +155,7 @@ def save_model(sess, saver, model, save_dir, global_step, steps_per_epoch, globa
     sess.run(tf.assign(model.global_seconds_elapsed, global_seconds_elapsed))
     saver.save(sess, checkpoint_path, global_step = global_step)
     print("Model saved.")
+
 
 if __name__ == '__main__':
     main()

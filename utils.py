@@ -1,8 +1,8 @@
-import codecs
 import os
 import io
 import collections
 import pickle
+import math
 from bz2 import BZ2File
 import numpy as np
 
@@ -53,6 +53,9 @@ class TextLoader():
             print("loading sizes file")
             with open(sizes_file, 'rb') as f:
                 self.tensor_sizes = pickle.load(f)
+        print(self.tensor_sizes)
+        print(self.seq_length)
+        print(self.batch_size)
         self.tensor_batch_counts = [n / (self.batch_size * self.seq_length) for n in self.tensor_sizes]
         self.total_batch_count = sum(self.tensor_batch_counts)
         print("total batch count: {}".format(self.total_batch_count))
@@ -138,8 +141,10 @@ class TextLoader():
         self.vocab = dict(zip(self.chars, range(len(self.chars))))
 
     def _preprocess(self, input_file, tensor_file):
-        if input_file.endswith(".bz2"): file_reference = BZ2File(input_file, "r")
-        elif input_file.endswith(".txt"): file_reference = io.open(input_file, "r")
+        if input_file.endswith(".bz2"):
+            file_reference = BZ2File(input_file, "r")
+        elif input_file.endswith(".txt"):
+            file_reference = io.open(input_file, "r", encoding="utf-8")
         raw_data = file_reference.read()
         file_reference.close()
         data = raw_data.encode(encoding=self.encoding)
@@ -149,6 +154,7 @@ class TextLoader():
         # [14, 2, 9, 2, 0, 6, 7, 0, ...]
         # np.array converts the list into a numpy array.
         self.tensor = np.array(map(self.vocab.get, data))
+        print("tensor:", self.tensor)
         # Compress and save the numpy tensor array to data.npz.
         np.savez_compressed(tensor_file, tensor_data=self.tensor)
 
@@ -183,6 +189,7 @@ class TextLoader():
         ydata = np.copy(self.tensor) # Y-data starts as a copy of x-data.
         ydata[:-1] = xdata[1:] # Right-shift y-data by 1 using the numpy array slice syntax.
         # Replace the very last character of y-data with the first character of the input data.
+        print(xdata)
         ydata[-1] = xdata[0]
         # Split our unidemnsional data array into distinct batches.
         # How? xdata.reshape(self.batch_size, -1) returns a 2D numpy tensor view
