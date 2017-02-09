@@ -1,4 +1,3 @@
-import numpy as np
 import tensorflow as tf
 
 import argparse
@@ -8,6 +7,7 @@ import pickle
 
 from utils import TextLoader
 from model import Model
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -40,6 +40,7 @@ def main():
     args = parser.parse_args()
     train(args)
 
+
 def train(args):
     # Create the data_loader object, which loads up all of our batches, vocab dictionary, etc.
     # from utils.py (and creates them if they don't already exist).
@@ -51,7 +52,7 @@ def train(args):
     if not os.path.exists(args.save_dir):
         print("Creating directory %s" % args.save_dir)
         os.mkdir(args.save_dir)
-    elif (os.path.exists(os.path.join(args.save_dir, 'config.pkl'))):
+    elif os.path.exists(os.path.join(args.save_dir, 'config.pkl')):
         # Trained model already exists
         ckpt = tf.train.get_checkpoint_state(args.save_dir)
         if ckpt and ckpt.model_checkpoint_path:
@@ -82,31 +83,29 @@ def train(args):
     with tf.Session(config=config) as sess:
         tf.global_variables_initializer().run()
         saver = tf.train.Saver(model.save_variables_list())
-        if (load_model):
+        if load_model:
             print("Loading saved parameters")
             saver.restore(sess, ckpt.model_checkpoint_path)
         global_epoch_fraction = sess.run(model.global_epoch_fraction)
         global_seconds_elapsed = sess.run(model.global_seconds_elapsed)
-        if load_model: print("Resuming from global epoch fraction {:.3f},"
-                " total trained time: {}, learning rate: {}".format(
+        if load_model:
+            print("Resuming from global epoch fraction {:.3f}, total trained time: {}, learning rate: {}".format(
                 global_epoch_fraction, global_seconds_elapsed, sess.run(model.lr)))
         data_loader.cue_batch_pointer_to_epoch_fraction(global_epoch_fraction)
-        initial_batch_step = int((global_epoch_fraction
-                - int(global_epoch_fraction)) * data_loader.total_batch_count)
-        epoch_range = (int(global_epoch_fraction),
-                args.num_epochs + int(global_epoch_fraction))
-        writer = tf.train.SummaryWriter(args.save_dir, graph=tf.get_default_graph())
+        initial_batch_step = int((global_epoch_fraction - int(global_epoch_fraction)) * data_loader.total_batch_count)
+        epoch_range = (int(global_epoch_fraction), args.num_epochs + int(global_epoch_fraction))
+        writer = tf.summary.FileWriter(args.save_dir, graph=tf.get_default_graph())
         outputs = [model.cost, model.final_state, model.train_op, model.summary_op]
         is_lstm = args.model == 'lstm'
         global_step = epoch_range[0] * data_loader.total_batch_count + initial_batch_step
         try:
-            for e in xrange(*epoch_range):
+            for e in range(*epoch_range):
                 # e iterates through the training epochs.
                 # Reset the model state, so it does not carry over from the end of the previous epoch.
                 state = sess.run(model.initial_state)
                 batch_range = (initial_batch_step, data_loader.total_batch_count)
                 initial_batch_step = 0
-                for b in xrange(*batch_range):
+                for b in range(*batch_range):
                     global_step += 1
                     if global_step % args.decay_steps == 0:
                         # Set the model.lr element of the model to track

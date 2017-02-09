@@ -6,6 +6,7 @@ import pickle
 from bz2 import BZ2File
 import numpy as np
 
+
 class TextLoader():
     # Call this class to load text from a file.
     def __init__(self, data_dir, batch_size, seq_length, encoding='utf-8'):
@@ -87,11 +88,12 @@ class TextLoader():
     def _augment_vocab(self, vocab_counter, input_file):
         # Load up the input.txt file and use it to create a vocab file and a tensor file
         # at the specified file paths.
-        if input_file.endswith(".bz2"): file_reference = BZ2File(input_file, "r")
-        elif input_file.endswith(".txt"): file_reference = io.open(input_file, "r")
+        if input_file.endswith(".bz2"):
+            file_reference = BZ2File(input_file, "r")
+        elif input_file.endswith(".txt"):
+            file_reference = io.open(input_file, "r")
         raw_data = file_reference.read()
         file_reference.close()
-        print(self.encoding)
         u_data = raw_data.encode(encoding=self.encoding)
         vocab_counter.update(u_data)
 
@@ -129,7 +131,6 @@ class TextLoader():
     def _load_vocab(self, vocab_file):
         # Load the character tuple (vocab.pkl) to self.chars.
         # Remember that it is in descending order of character frequency in the data.
-        print(vocab_file)
         with open(vocab_file, 'rb') as f:
             self.chars = pickle.load(f)
         # Use the character tuple to regenerate vocab_size and the vocab dictionary.
